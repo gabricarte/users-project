@@ -4,8 +4,9 @@ class UserController {
     constructor(formId, tableId) {
 
         this.formEl = document.getElementById(formId);
-        this.tableEl = document.getElementById(tableId); //Deixar dinâmico, para que possa ser usado em vários formulários
+        this.tableEl = document.getElementById(tableId);
         this.onSubmit();
+        this.onEdit();
 
     }
 
@@ -175,6 +176,9 @@ class UserController {
 
         let tr = document.createElement('tr');
 
+        //Coloca o user, variável json em forma de string dentro de tr. 
+        tr.dataset.user = JSON.stringify(dataUser);
+
         let adminInput = document.querySelector("#checkbox");
 
         tr.innerHTML = `
@@ -189,12 +193,46 @@ class UserController {
             <td>  ${Utils.dateFormat(dataUser.register)}  </td>
 
             <td>
-                <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
+                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
                 <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
             </td>
 
         </tr >
     `;
+
+        //Capturando o evento de click no botão "editar". 
+        //Salvando as informações do json no formulário "Editar Usuário"
+
+        tr.querySelector(".btn-edit").addEventListener("click", e => {
+
+            //transforma o elemento em json novamente
+            let json = JSON.parse(tr.dataset.user);
+
+            let form = document.querySelector("#form-user-update");
+
+            //Pega o nome da propriedade no json e salva em 
+            for (let name in json) {
+
+                //Para encontrar o campo "[]" que o nome começa com  cada "name" de  propriedade do json
+                let field = form.querySelector("[name=" + name.replace("_", "") + "]")
+
+                //Se o campo existir e não for um arquivo, salvar no "value" o que está no json.
+                if (field) {
+
+                    if (field.type == 'file') {
+                        continue;   //Palavra reservada, ignora o restante das instruções e avança 
+                    }
+
+                    field.value = json[name];
+
+                }
+            }
+
+
+            this.showPanelUpdate();
+
+
+        })
 
         this.tableEl.appendChild(tr);
 
@@ -203,11 +241,53 @@ class UserController {
 
     }
 
-    //Toda vez que adiciono uma linha, chama o método para atualizar a contagem
+    //Toda vez que adiciono uma linha, chama o método para atualizar a contagem na tela
     updateCount() {
 
-        console.dir(this.tableEl);
+        let numberUsers = 0;
+        let numberAdmin = 0;
 
+
+        [...this.tableEl.children].forEach(tr => {
+
+            numberUsers++;
+
+            //Transforma a string tr.dataset.user em JSON
+            let user = JSON.parse(tr.dataset.user);
+
+            if (user._admin) {
+                numberAdmin++;
+            }
+
+        })
+
+        document.querySelector("#number-users").innerHTML = numberUsers;
+        document.querySelector("#number-users-admin").innerHTML = numberAdmin;
+    }
+
+
+    //Ao clicar no botão "cancelar", sai do formulário de edição e volta no de criar usuário
+    onEdit() {
+
+        //localiza a classe .btn-cancel
+        document.querySelector("#box-user-update .btn-cancel").addEventListener("click", e => {
+
+            this.showPanelCreate();
+
+        })
+
+
+    }
+
+    showPanelCreate() {
+        document.querySelector("#box-user-create").style.display = "block";
+        document.querySelector("#box-user-update").style.display = "none";
+
+    }
+
+    showPanelUpdate() {
+        document.querySelector("#box-user-create").style.display = "none";
+        document.querySelector("#box-user-update").style.display = "block";
     }
 
 
