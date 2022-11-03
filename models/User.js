@@ -15,7 +15,25 @@ class User {
 
     }
 
+    loadFromJSON(json) {
 
+        //para cada nome de propriedade 
+
+        for (let name in json) {
+
+            switch (name) {
+
+                case '_register':
+                    this[name] = new Date(json[name]);
+                    break;
+
+                default:
+                    this[name] = json[name];
+            }
+
+        }
+
+    }
 
     //Getters and setters
 
