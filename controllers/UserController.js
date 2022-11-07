@@ -11,6 +11,7 @@ class UserController {
         this.selectAll();
     }
 
+
     //Ao clicar no botão "cancelar", sai do formulário de edição e volta no de criar usuário
     onEdit() {
 
@@ -26,6 +27,7 @@ class UserController {
             event.preventDefault(); //Cancela o comportamento padrão, para não atualizar a página
 
             let btn = this.formUpdateEl.querySelector("[type=submit]") //captura o botão submit para que ele não fique disponível para usuário clicar várias vezes
+
             btn.disabled = true;
 
             //pega todos os values do formulário
@@ -42,12 +44,6 @@ class UserController {
             let result = Object.assign({}, userOld, values); //Values substitui os valores que não existiam em userOld
 
 
-            tr.dataset.user = JSON.stringify(result);
-
-            this.updateCount();
-
-            this.showPanelCreate();
-
             this.getPhoto(this.formUpdateEl).then(content => {
 
                 if (!values.photo) {
@@ -57,28 +53,19 @@ class UserController {
 
                 }
 
-                tr.innerHTML = `
-                <tr>
-                    <td><img src="${result._photo}" alt="User Image" class="img-circle img-sm"></td>
-                    <td>${result._name}</td>
-                    <td>${result._email}</td>
-        
-                    <td>${(result._admin) ? "Sim" : "Não"}</td>
-        
-                    <td>  ${Utils.dateFormat(result._register)}  </td>
-        
-                    <td>
-                        <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                        <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
-                    </td>
-        
-                </tr >
-            `;
+                let user = new User();
 
-                this.addEventsTr(tr);
+                user.loadFromJSON(result);
 
+                user.save();
 
-                this.formUpdateEl.reset();; //limpa o formulário
+                this.getTr(user, tr)
+
+                this.updateCount();
+
+                this.formUpdateEl.reset(); //limpa o formulário
+
+                this.showPanelCreate();
 
                 btn.disabled = false;  //destrava o botão de submit
 
@@ -117,9 +104,10 @@ class UserController {
 
                 values.photo = content;   //sobrescrevendo a propriedade photo
 
-                this.insert(values);
+                values.save();
 
                 this.addLine(values);
+
 
                 this.formEl.reset(); //limpa o formulário
 
@@ -141,7 +129,6 @@ class UserController {
 
     //Acessando a propriedade "elements" do formulário. É possível visualizar ela no console:
     // dir(document.getElementById("form-user-create"));  
-
     getValues(formEl) {
 
         let user = {}; //Json
@@ -202,16 +189,26 @@ class UserController {
 
     }
 
+
     //Parte do "View" do MVC:
-
-    //Adicionando o conteúdo do json na tabela do HTML: 
-
+    //Adicionando o conteúdo do json na tabela do HTML:
     addLine(dataUser) {
 
-        //innerHTML permite a criação de elementos com formatação HTML 
-        //Usando o TemplateString (if ternário)
+        let tr = this.getTr(dataUser);
 
-        let tr = document.createElement('tr');
+        this.tableEl.appendChild(tr);
+
+        this.updateCount();
+
+    }
+
+
+    //Método para refatoração do html tr
+    // O "tr = null" indica que não é obrigatório
+    getTr(dataUser, tr = null) {
+
+
+        if (tr === null) tr = document.createElement('tr');
 
         //Coloca o user, variável json em forma de string dentro de tr. 
         tr.dataset.user = JSON.stringify(dataUser);
@@ -237,33 +234,32 @@ class UserController {
 
         this.addEventsTr(tr);
 
-        this.tableEl.appendChild(tr);
+        return tr;
 
-        this.updateCount();
+
 
     }
 
-    //Retorna os users cadastrados
-    getUsersStorage() {
+
+    getusersStorage() {
 
         let users = [];
 
-        //Se existir users cadastrados 
         if (localStorage.getItem("users")) {
 
-            //transforma em json o conteúdo que já está no localStorage como string
             users = JSON.parse(localStorage.getItem("users"));
 
         }
 
-        return users; //users nesse caso, é um array constituído por objetos
+        return users
 
     }
+
 
     //Seleciona todos os dados que estão localStorage e insere na linha da tabela
     selectAll() {
 
-        let users = this.getUsersStorage();
+        let users = this.getusersStorage();
 
         users.forEach(dataUser => {
 
@@ -279,17 +275,6 @@ class UserController {
 
     }
 
-    //adiciona no localStorage os dados do novo usuário como string
-    insert(data) {
-
-        let users = this.getUsersStorage();
-
-        users.push(data); //Adiciona no array os dados do usuário que está sendo recebido no método no momento 
-
-        //  sessionStorage.setItem("users", JSON.stringify(users)); //Grava de acordo com o modelo "sessionStorage", chave e valor 
-        localStorage.setItem("users", JSON.stringify(users));
-
-    }
 
     getPhoto(formEl) {
 
@@ -341,7 +326,6 @@ class UserController {
     }
 
 
-
     //Capturando os eventos de "Editar" e "Excluir" na tr
     addEventsTr(tr) {
 
@@ -349,8 +333,6 @@ class UserController {
 
             //Função que trava o navegador, se apertar ok retorna "true", se cancelar "false". 
             if (confirm("Deseja realmente excluir? ")) {
-                console.log(tr);
-                console.log(typeof tr);
                 tr.remove();
                 this.updateCount();
             }
@@ -401,6 +383,7 @@ class UserController {
 
     }
 
+
     //Toda vez que adiciono uma linha, chama o método para atualizar a contagem na tela
     updateCount() {
 
@@ -424,11 +407,13 @@ class UserController {
         document.querySelector("#number-users-admin").innerHTML = numberAdmin;
     }
 
+
     showPanelCreate() {
         document.querySelector("#box-user-create").style.display = "block";
         document.querySelector("#box-user-update").style.display = "none";
 
     }
+
 
     showPanelUpdate() {
         document.querySelector("#box-user-create").style.display = "none";
