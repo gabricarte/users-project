@@ -16,6 +16,8 @@ class User {
 
     }
 
+
+
     loadFromJSON(json) {
 
         //para cada nome de propriedade 
@@ -37,7 +39,7 @@ class User {
     }
 
 
-    //Retorna os users cadastrados
+    //Retorna os users cadastrados no localStorage
     static getUsersStorage() {
 
         let users = [];
@@ -57,11 +59,15 @@ class User {
     //Gera um novo id para o usuário que não possuir um 
     getNewId() {
 
-        if (!window.id) window.id = 0; //o window mantém o escopo global 
+        let usersId = parseInt(localStorage.getItem("usersId")); //guarda o último id gerado
 
-        id++;
+        if (!usersId > 0) usersId = 0; //se ele não for maior q 0, não existe
 
-        return id;
+        usersId++;
+
+        localStorage.setItem("usersId", usersId);
+
+        return usersId;
 
     }
 
@@ -103,6 +109,32 @@ class User {
     }
 
 
+    //Remove o user do localStorage
+    remove() {
+
+        let users = User.getUsersStorage();
+
+        users.forEach((userData, index) => {
+
+            //Encontra o user que desejo excluir (de acordo com o que está sendo instanciado)
+            if (this._id == userData._id) {
+
+                users.splice(index, 1);
+
+            }
+
+            localStorage.setItem("users", JSON.stringify(users));
+
+        });
+
+
+    }
+
+
+
+
+
+    
 
 
     //Getters and setters

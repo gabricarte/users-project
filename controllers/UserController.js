@@ -241,25 +241,10 @@ class UserController {
     }
 
 
-    getusersStorage() {
-
-        let users = [];
-
-        if (localStorage.getItem("users")) {
-
-            users = JSON.parse(localStorage.getItem("users"));
-
-        }
-
-        return users
-
-    }
-
-
     //Seleciona todos os dados que estão localStorage e insere na linha da tabela
     selectAll() {
 
-        let users = this.getusersStorage();
+        let users = User.getUsersStorage();
 
         users.forEach(dataUser => {
 
@@ -270,8 +255,6 @@ class UserController {
             this.addLine(user);
 
         })
-
-
 
     }
 
@@ -333,7 +316,16 @@ class UserController {
 
             //Função que trava o navegador, se apertar ok retorna "true", se cancelar "false". 
             if (confirm("Deseja realmente excluir? ")) {
-                tr.remove();
+
+                let user = new User();
+
+                user.loadFromJSON(JSON.parse(tr.dataset.user));
+
+                user.remove();
+
+                tr.remove(); //método nativo js para excluir a tr no html
+
+
                 this.updateCount();
             }
         });
