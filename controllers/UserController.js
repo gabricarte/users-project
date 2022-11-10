@@ -12,6 +12,51 @@ class UserController {
     }
 
 
+    //Para capturar os dados do formulário ao clicar em "submit":
+    onSubmit() {
+
+        this.formEl.addEventListener("submit", event => {
+
+            event.preventDefault(); //Cancela o comportamento padrão do formulário de recarregar a página
+
+            let btn = this.formEl.querySelector("[type=submit]")//Para encontrar o botão dentro do formulário
+
+            btn.disabled = true; //trava o botão para deixar ele disponível só após a limpeza do formulário
+
+            let values = this.getValues(this.formEl);
+
+            if (!values) {
+                return false;
+            }
+
+            //A primeira função é se ocorrer certo, a segunda errado. 
+            this.getPhoto(this.formEl).then(content => {
+
+                values.photo = content;   //sobrescrevendo a propriedade photo
+
+                values.save();
+
+                this.addLine(values);
+
+
+                this.formEl.reset(); //limpa o formulário
+
+                btn.disabled = false;
+
+
+            }, function (e) {
+
+                console.error(e); //Exibe a mensagem de erro
+
+            });
+
+
+
+        });
+
+    }
+
+
     //Ao clicar no botão "cancelar", sai do formulário de edição e volta no de criar usuário
     onEdit() {
 
@@ -80,53 +125,25 @@ class UserController {
 
     }
 
+    //Seleciona todos os dados que estão localStorage e insere na linha da tabela
+    selectAll() {
 
-    //Para pegar os dados do formulário ao clicar em "submit":
-    onSubmit() {
+        let users = User.getUsersStorage();
 
-        this.formEl.addEventListener("submit", event => {
+        users.forEach(dataUser => {
 
-            event.preventDefault(); //Cancela o comportamento padrão do formulário de recarregar a página
+            let user = new User();
 
-            let btn = this.formEl.querySelector("[type=submit]")//Para encontrar o botão dentro do formulário
+            user.loadFromJSON(dataUser); //Método em user que carrega a partir do JSON
 
-            btn.disabled = true; //trava o botão para deixar ele disponível só após a limpeza do formulário
+            this.addLine(user);
 
-            let values = this.getValues(this.formEl);
-
-
-            if (!values) {
-                return false;
-            }
-
-            //A primeira função é se ocorrer certo, a segunda errado. 
-            this.getPhoto(this.formEl).then(content => {
-
-                values.photo = content;   //sobrescrevendo a propriedade photo
-
-                values.save();
-
-                this.addLine(values);
-
-
-                this.formEl.reset(); //limpa o formulário
-
-                btn.disabled = false;
-
-
-            }, function (e) {
-
-                console.error(e); //Exibe a mensagem de erro
-
-            });
-
-
-
-        });
+        })
 
     }
 
 
+    //Cria o Json com os dados do formulário enviado
     //Acessando a propriedade "elements" do formulário. É possível visualizar ela no console:
     // dir(document.getElementById("form-user-create"));  
     getValues(formEl) {
@@ -204,7 +221,7 @@ class UserController {
 
 
     //Método para refatoração do html tr
-    // O "tr = null" indica que não é obrigatório
+    // O parâmetro "tr = null" indica que não é obrigatório
     getTr(dataUser, tr = null) {
 
 
@@ -237,24 +254,6 @@ class UserController {
         return tr;
 
 
-
-    }
-
-
-    //Seleciona todos os dados que estão localStorage e insere na linha da tabela
-    selectAll() {
-
-        let users = User.getUsersStorage();
-
-        users.forEach(dataUser => {
-
-            let user = new User();
-
-            user.loadFromJSON(dataUser); //Método em user que carrega a partir do JSON
-
-            this.addLine(user);
-
-        })
 
     }
 

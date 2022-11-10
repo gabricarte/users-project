@@ -16,8 +16,6 @@ class User {
 
     }
 
-
-
     loadFromJSON(json) {
 
         //para cada nome de propriedade 
@@ -129,13 +127,6 @@ class User {
 
 
     }
-
-
-
-
-
-    
-
 
     //Getters and setters
 
